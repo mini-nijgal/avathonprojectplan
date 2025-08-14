@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 # Page configuration
 st.set_page_config(
-    page_title="Comprehensive Project Management Dashboard",
+    page_title="Unified Project Management Dashboard",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -302,7 +302,7 @@ def calculate_testing_timeline(df: pd.DataFrame, complexity_map: Dict[str, int])
         duration_days = max(1, int(np.ceil(effort_hours / 8)))
         
         # Update effort hours and duration
-        df_copy.loc[idx, 'Effort Hours'] = effort_hours
+        df_copy.loc[idx, 'Task ID'] = effort_hours
         df_copy.loc[idx, 'Duration Days'] = duration_days
         
         # Calculate dates based on dependencies
@@ -538,17 +538,83 @@ def calculate_project_kpis(df: pd.DataFrame) -> Dict[str, any]:
         'active_phases': active_phases
     }
 
+def create_unified_dataframe(template_df, demo_df):
+    """Create a unified dataframe combining template and demo data with only columns that have data"""
+    
+    # Get columns that have actual data in template
+    template_columns = []
+    for col in template_df.columns:
+        if template_df[col].str.strip().ne('').any():
+            template_columns.append(col)
+    
+    # Get columns that have actual data in demo
+    demo_columns = []
+    for col in demo_df.columns:
+        if demo_df[col].notna().any() and demo_df[col].astype(str).str.strip().ne('').any():
+            demo_columns.append(col)
+    
+    # Create unified dataframe with common columns and data
+    unified_data = []
+    
+    # Add template data
+    for _, row in template_df.iterrows():
+        unified_row = {}
+        for col in template_columns:
+            unified_row[col] = row[col]
+        unified_data.append(unified_row)
+    
+    # Add demo data (only columns that have data)
+    for _, row in demo_df.iterrows():
+        unified_row = {}
+        for col in demo_columns:
+            if col in ['Task ID', 'Task Name', 'Phase', 'Site', 'Status', 'Owner']:
+                unified_row[col] = row[col]
+            elif col in ['Planned Start', 'Planned Finish', 'Actual Start', 'Actual Finish']:
+                if pd.notna(row[col]):
+                    unified_row[col] = row[col]
+            elif col in ['Complexity', 'Effort Hours', 'Duration Days', 'Dependencies']:
+                if pd.notna(row[col]) and str(row[col]).strip():
+                    unified_row[col] = row[col]
+        unified_data.append(unified_row)
+    
+    # Create DataFrame and fill missing values
+    unified_df = pd.DataFrame(unified_data)
+    
+    # Fill missing values with appropriate defaults
+    for col in unified_df.columns:
+        if col in ['TASK', 'Task Name']:
+            unified_df[col] = unified_df[col].fillna('')
+        elif col in ['OWNER', 'Owner']:
+            unified_df[col] = unified_df[col].fillna('Unassigned')
+        elif col in ['COMMENT', 'REF LINK']:
+            unified_df[col] = unified_df[col].fillna('')
+        elif col in ['Phase', 'Site', 'Status']:
+            unified_df[col] = unified_df[col].fillna('Unknown')
+        elif col in ['Complexity']:
+            unified_df[col] = unified_df[col].fillna('Medium')
+        elif col in ['Effort Hours', 'Duration Days']:
+            unified_df[col] = unified_df[col].fillna(0)
+        elif col in ['Dependencies']:
+            unified_df[col] = unified_df[col].fillna('')
+    
+    return unified_df
+
 def main_app():
     """Main application after login"""
-    st.title("🚀 Comprehensive Project Management Dashboard")
+    st.title("🚀 Unified Project Management Dashboard")
     st.markdown("---")
     
     # Initialize session state for projects
     if 'projects' not in st.session_state:
         st.session_state.projects = load_projects()
     
-    # Load template
+    # Load template and demo data
     template_df = load_template()
+    demo_df = load_demo_data()
+    
+    # Create unified dataframe
+    if 'unified_data' not in st.session_state:
+        st.session_state.unified_data = create_unified_dataframe(template_df, demo_df)
     
     # Sidebar controls
     st.sidebar.header("🎛️ Controls")
@@ -561,164 +627,6 @@ def main_app():
     
     st.sidebar.markdown(f"**Logged in as:** {st.session_state.username}")
     st.sidebar.markdown("---")
-    
-    # App mode selector
-    app_mode = st.sidebar.selectbox(
-        "Select App Mode",
-        ["📊 Project Plan Dashboard", "📁 Multi-Project Management"]
-    )
-    
-    if app_mode == "📊 Project Plan Dashboard":
-        show_project_plan_dashboard()
-    else:
-        show_multi_project_management(template_df)
-
-def show_project_plan_dashboard():
-    """Show the original project plan dashboard with dependency chaining"""
-    st.header("📊 Project Plan Dashboard")
-    st.markdown("---")
-    
-    # Initialize demo data
-    if 'project_data' not in st.session_state:
-        st.session_state.project_data = load_demo_data()
-    
-    # Reset button
-    if st.button("🔄 Reset to Demo Data", type="primary"):
-        st.session_state.project_data = load_demo_data()
-        st.rerun()
-    
-    # Filters
-    st.sidebar.header("🔍 Filters")
-    
-    # Get unique values for filters
-    sites = ["All Sites"] + list(st.session_state.project_data['Site'].unique())
-    phases = ["All Phases"] + list(st.session_state.project_data['Phase'].unique())
-    statuses = ["All Statuses"] + list(st.session_state.project_data['Status'].unique())
-    
-    site_filter = st.sidebar.selectbox("Site", sites)
-    phase_filter = st.sidebar.selectbox("Phase", phases)
-    status_filter = st.sidebar.selectbox("Status", statuses)
-    
-    # Apply filters
-    filtered_data = apply_filters(
-        st.session_state.project_data, 
-        site_filter, 
-        phase_filter, 
-        status_filter
-    )
-    
-    # Calculate KPIs
-    kpis = calculate_project_kpis(filtered_data)
-    
-    # Display KPIs
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("Total Tasks", kpis['total_tasks'])
-        st.metric("Completion Rate", f"{kpis['completion_rate']:.1f}%")
-    
-    with col2:
-        st.metric("Completed", kpis['completed_tasks'])
-        st.metric("In Progress", kpis['in_progress_tasks'])
-    
-    with col3:
-        st.metric("Yet to Start", kpis['yet_to_start_tasks'])
-        st.metric("Delayed Tasks", kpis['delayed_tasks'])
-    
-    with col4:
-        st.metric("Total Effort Hours", f"{kpis['total_hours']:.0f}")
-        st.metric("Active Phases", kpis['active_phases'])
-    
-    st.markdown("---")
-    
-    # Testing & Model Training Configuration
-    st.header("🧪 Testing & Model Training Configuration")
-    
-    testing_tasks = filtered_data[filtered_data['Phase'] == 'Testing & Model Training']
-    
-    if not testing_tasks.empty:
-        for idx, task in testing_tasks.iterrows():
-            col1, col2, col3 = st.columns([3, 2, 2])
-            
-            with col1:
-                st.write(f"**{task['Task Name']}** ({task['Task ID']})")
-            
-            with col2:
-                complexity = st.selectbox(
-                    "Complexity",
-                    list(COMPLEXITY_HOURS.keys()),
-                    key=f"complexity_{task['Task ID']}",
-                    index=list(COMPLEXITY_HOURS.keys()).index(task.get('Complexity', 'Medium'))
-                )
-                
-                # Update complexity if changed
-                if complexity != task['Complexity']:
-                    st.session_state.project_data = update_task(
-                        st.session_state.project_data, 
-                        task['Task ID'], 
-                        'Complexity', 
-                        complexity
-                    )
-                    st.rerun()
-            
-            with col3:
-                effort_hours = COMPLEXITY_HOURS[complexity]
-                duration_days = max(1, int(np.ceil(effort_hours / 8)))
-                st.write(f"**{effort_hours}h** ({duration_days} days)")
-        
-        # Recalculate timeline after complexity changes
-        st.session_state.project_data = calculate_testing_timeline(
-            st.session_state.project_data, 
-            COMPLEXITY_HOURS
-        )
-    
-    st.markdown("---")
-    
-    # Editable Task Table
-    st.header("📋 Project Tasks")
-    
-    # Create editable dataframe
-    edited_df = st.data_editor(
-        filtered_data[['Task ID', 'Task Name', 'Phase', 'Site', 'Status', 'Owner', 
-                      'Planned Start', 'Planned Finish', 'Actual Start', 'Actual Finish',
-                      'Complexity', 'Effort Hours', 'Duration Days', 'Dependencies']],
-        num_rows="dynamic",
-        use_container_width=True,
-        key="task_editor"
-    )
-    
-    # Update original dataframe with edits
-    for idx, row in edited_df.iterrows():
-        if idx < len(filtered_data):
-            original_task_id = filtered_data.iloc[idx]['Task ID']
-            
-            for col in edited_df.columns:
-                new_value = row[col]
-                original_value = filtered_data.iloc[idx][col]
-                
-                if new_value != original_value:
-                    st.session_state.project_data = update_task(
-                        st.session_state.project_data,
-                        original_task_id,
-                        col,
-                        new_value
-                    )
-    
-    st.markdown("---")
-    
-    # Gantt Chart
-    st.header("📊 Project Timeline")
-    
-    gantt_fig = generate_gantt(filtered_data)
-    if gantt_fig:
-        st.plotly_chart(gantt_fig, use_container_width=True)
-    else:
-        st.warning("No valid date data found for Gantt chart generation.")
-
-def show_multi_project_management(template_df):
-    """Show the multi-project management interface"""
-    st.header("📁 Multi-Project Management")
-    st.markdown("---")
     
     # Project management
     st.sidebar.header("📁 Project Management")
@@ -763,92 +671,122 @@ def show_multi_project_management(template_df):
     
     st.sidebar.markdown("---")
     
-    # Main content area
-    if not st.session_state.projects:
-        st.info("👆 Create your first project using the sidebar controls above")
-        st.markdown("---")
-        
-        # Show template preview
-        st.subheader("📋 Template Preview")
-        st.markdown("This is the base template that will be used for new projects:")
-        st.dataframe(template_df, use_container_width=True)
-        
+    # Filters for unified view
+    st.sidebar.header("🔍 Filters")
+    
+    # Get unique values for filters from unified data
+    if 'Phase' in st.session_state.unified_data.columns:
+        phases = ["All Phases"] + list(st.session_state.unified_data['Phase'].unique())
+        phase_filter = st.sidebar.selectbox("Phase", phases)
     else:
-        # Display selected project
-        st.subheader(f"📊 Project: {selected_project}")
-        
-        # Project actions
-        col1, col2, col3 = st.columns([2, 1, 1])
-        
-        with col1:
-            st.markdown(f"**Total Tasks:** {len(st.session_state.projects[selected_project])}")
-        
-        with col2:
-            if st.button("🔄 Reset to Template", key="reset_btn"):
-                st.session_state.projects[selected_project] = template_df.copy()
-                if save_projects(st.session_state.projects):
-                    st.success("Project reset to template")
-                    st.rerun()
-                else:
-                    st.error("Error saving changes")
-        
-        with col3:
-            if st.button("💾 Save Changes", key="save_btn"):
-                if save_projects(st.session_state.projects):
-                    st.success("Changes saved successfully")
-                else:
-                    st.error("Error saving changes")
-        
-        st.markdown("---")
-        
-        # Editable project table
-        st.subheader("📝 Edit Project Data")
-        st.markdown("**Note:** TASK column is read-only. Edit OWNER, COMMENT, and REF LINK columns.")
-        
-        # Create editable dataframe
-        current_project = st.session_state.projects[selected_project]
-        
+        phase_filter = "All Phases"
+    
+    if 'Site' in st.session_state.unified_data.columns:
+        sites = ["All Sites"] + list(st.session_state.unified_data['Site'].unique())
+        site_filter = st.sidebar.selectbox("Site", sites)
+    else:
+        site_filter = "All Sites"
+    
+    if 'Status' in st.session_state.unified_data.columns:
+        statuses = ["All Statuses"] + list(st.session_state.unified_data['Status'].unique())
+        status_filter = st.sidebar.selectbox("Status", statuses)
+    else:
+        status_filter = "All Statuses"
+    
+    # Apply filters to unified data
+    filtered_unified_data = st.session_state.unified_data.copy()
+    
+    if site_filter and site_filter != "All Sites" and 'Site' in filtered_unified_data.columns:
+        filtered_unified_data = filtered_unified_data[filtered_unified_data['Site'] == site_filter]
+    
+    if phase_filter and phase_filter != "All Phases" and 'Phase' in filtered_unified_data.columns:
+        filtered_unified_data = filtered_unified_data[filtered_unified_data['Phase'] == phase_filter]
+    
+    if status_filter and status_filter != "All Statuses" and 'Status' in filtered_unified_data.columns:
+        filtered_unified_data = filtered_unified_data[filtered_unified_data['Status'] == status_filter]
+    
+    # Main content area
+    st.header("📋 Template Preview & Project Tasks")
+    st.markdown("**Combined view showing your Excel template data and project tasks together**")
+    
+    # Display template preview
+    st.subheader("📋 Template Preview (Excel Data)")
+    st.markdown("This is the base template loaded from your Excel file:")
+    
+    # Show only columns that have data
+    template_columns_with_data = []
+    for col in template_df.columns:
+        if template_df[col].str.strip().ne('').any():
+            template_columns_with_data.append(col)
+    
+    if template_columns_with_data:
+        st.dataframe(template_df[template_columns_with_data], use_container_width=True)
+    else:
+        st.info("No template data found")
+    
+    st.markdown("---")
+    
+    # Display unified project data
+    st.subheader("📊 Project Tasks (Combined Data)")
+    st.markdown("**Note:** Only columns with actual data are displayed")
+    
+    # Get columns that have actual data in unified dataframe
+    columns_with_data = []
+    for col in filtered_unified_data.columns:
+        if filtered_unified_data[col].notna().any() and filtered_unified_data[col].astype(str).str.strip().ne('').any():
+            columns_with_data.append(col)
+    
+    if columns_with_data:
+        # Create editable dataframe with only columns that have data
         edited_df = st.data_editor(
-            current_project,
+            filtered_unified_data[columns_with_data],
             num_rows="dynamic",
             use_container_width=True,
-            key=f"editor_{selected_project}",
-            column_config={
-                "TASK": st.column_config.TextColumn("TASK", disabled=True),
-                "OWNER": st.column_config.TextColumn("OWNER"),
-                "COMMENT": st.column_config.TextColumn("COMMENT"),
-                "REF LINK": st.column_config.TextColumn("REF LINK")
-            }
+            key="unified_editor"
         )
         
-        # Update project data if changes detected
-        if not edited_df.equals(current_project):
-            st.session_state.projects[selected_project] = edited_df
-            st.info("💡 Changes detected! Click 'Save Changes' to persist them.")
-        
-        # Project statistics
-        st.markdown("---")
-        st.subheader("📈 Project Statistics")
-        
+        # Update unified data if changes detected
+        if not edited_df.equals(filtered_unified_data[columns_with_data]):
+            st.session_state.unified_data = edited_df
+            st.info("💡 Changes detected! Data updated in session.")
+    else:
+        st.info("No project data found")
+    
+    # Project statistics
+    st.markdown("---")
+    st.subheader("📈 Project Statistics")
+    
+    if not filtered_unified_data.empty:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            total_tasks = len(current_project)
+            total_tasks = len(filtered_unified_data)
             st.metric("Total Tasks", total_tasks)
         
         with col2:
-            unique_owners = current_project['OWNER'].nunique()
-            st.metric("Unique Owners", unique_owners)
+            if 'Owner' in filtered_unified_data.columns:
+                unique_owners = filtered_unified_data['Owner'].nunique()
+                st.metric("Unique Owners", unique_owners)
+            else:
+                st.metric("Unique Owners", 0)
         
         with col3:
-            tasks_with_comments = len(current_project[current_project['COMMENT'].str.strip() != ''])
-            st.metric("Tasks with Comments", tasks_with_comments)
+            if 'Phase' in filtered_unified_data.columns:
+                active_phases = filtered_unified_data['Phase'].nunique()
+                st.metric("Active Phases", active_phases)
+            else:
+                st.metric("Active Phases", 0)
         
         with col4:
-            tasks_with_refs = len(current_project[current_project['REF LINK'].str.strip() != ''])
-            st.metric("Tasks with Ref Links", tasks_with_refs)
-        
-        # Show all projects summary
+            if 'Status' in filtered_unified_data.columns:
+                completed_tasks = len(filtered_unified_data[filtered_unified_data['Status'] == 'Completed'])
+                completion_rate = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
+                st.metric("Completion Rate", f"{completion_rate:.1f}%")
+            else:
+                st.metric("Completion Rate", "N/A")
+    
+    # Show all projects summary
+    if st.session_state.projects:
         st.markdown("---")
         st.subheader("📁 All Projects Overview")
         
@@ -857,12 +795,18 @@ def show_multi_project_management(template_df):
             projects_summary.append({
                 "Project Name": name,
                 "Total Tasks": len(df),
-                "Unique Owners": df['OWNER'].nunique(),
+                "Unique Owners": df['OWNER'].nunique() if 'OWNER' in df.columns else 0,
                 "Last Modified": "Today"  # Could add actual timestamp tracking
             })
         
         summary_df = pd.DataFrame(projects_summary)
         st.dataframe(summary_df, use_container_width=True)
+    
+    # Reset button
+    st.markdown("---")
+    if st.button("🔄 Reset to Original Data", type="primary"):
+        st.session_state.unified_data = create_unified_dataframe(template_df, demo_df)
+        st.rerun()
 
 def main():
     """Main function to handle app flow"""
