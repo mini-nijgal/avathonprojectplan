@@ -1,16 +1,31 @@
-# 🚀 Multi-Project Management Dashboard
+# 🚀 Comprehensive Project Management Dashboard
 
-A **Streamlit web app** that provides secure, multi-project management capabilities with Excel template loading, user authentication, and persistent data storage.
+A **Streamlit web app** that combines **two powerful features** in one application:
 
-## ✨ Features
+1. **📊 Project Plan Dashboard**: Advanced project planning with dependency chaining, complexity-driven scheduling, and interactive Gantt charts
+2. **📁 Multi-Project Management**: Secure multi-project management with Excel template loading, user authentication, and persistent data storage
 
-- **🔐 User Authentication**: Secure login with username/password
-- **📋 Excel Template Loading**: Automatically loads your project template
-- **📁 Multi-Project Management**: Create, edit, and manage multiple projects
-- **💾 Persistent Storage**: Data saved automatically between sessions
-- **✏️ Inline Editing**: Edit project data directly in the app
-- **🔄 Template Reset**: Reset any project back to the original template
-- **📊 Project Statistics**: Overview of all projects and tasks
+## ✨ Combined Features
+
+### **🔐 User Authentication**
+- Secure login with username/password
+- Multiple user accounts supported
+- Session management and security
+
+### **📊 Project Plan Dashboard**
+- **Complexity-driven scheduling** for Testing & Model Training tasks
+- **Automatic dependency chaining** with topological sorting
+- **Interactive Gantt charts** with Plotly
+- **Real-time KPI metrics** and project statistics
+- **Editable task tables** with immediate updates
+- **Smart filtering** by site, phase, and status
+
+### **📁 Multi-Project Management**
+- **Excel template loading** (TASK, OWNER, COMMENT, REF LINK)
+- **Multiple project creation** from your template
+- **Persistent data storage** between sessions
+- **Project switching** and management
+- **Template reset** capabilities
 
 ## 🛠️ Installation
 
@@ -28,10 +43,8 @@ A **Streamlit web app** that provides secure, multi-project management capabilit
    ```
 
 2. **Login**: Use one of the demo accounts shown on the login page
-3. **Create Projects**: Use the sidebar to create new projects from your template
-4. **Edit Data**: Modify OWNER, COMMENT, and REF LINK fields inline
-5. **Save Changes**: Click "Save Changes" to persist your modifications
-6. **Switch Projects**: Use the dropdown to switch between different projects
+3. **Choose Mode**: Select between "Project Plan Dashboard" or "Multi-Project Management"
+4. **Use Features**: Access all capabilities based on your selected mode
 
 ## 🔐 Demo Accounts
 
@@ -40,114 +53,149 @@ The app comes with pre-configured demo accounts:
 - **Username**: `pm` | **Password**: `pm456`
 - **Username**: `user` | **Password**: `user789`
 
+## 🎯 Two App Modes
+
+### **Mode 1: 📊 Project Plan Dashboard**
+**Advanced project planning with full features:**
+- **Complexity Mapping**: Simple (16h), Medium (40h), Complex (80h)
+- **Dependency Chaining**: Automatic task rescheduling
+- **Gantt Visualization**: Interactive timeline charts
+- **Real-time Updates**: Immediate reflection of changes
+- **KPI Metrics**: Completion rates, effort hours, delays
+
+**Perfect for:**
+- Complex project planning
+- Dependency management
+- Timeline visualization
+- Resource allocation
+
+### **Mode 2: 📁 Multi-Project Management**
+**Template-based project management:**
+- **Excel Template**: Load your existing project structure
+- **Multiple Projects**: Create unlimited projects from template
+- **Data Persistence**: Save and load project data
+- **Inline Editing**: Modify OWNER, COMMENT, REF LINK fields
+- **Project Statistics**: Overview of all projects
+
+**Perfect for:**
+- Managing multiple similar projects
+- Using existing Excel templates
+- Team collaboration
+- Data persistence
+
 ## 📊 Data Structure
 
-The app automatically extracts these columns from your Excel file:
+### **Project Plan Dashboard:**
+- **Task ID**: Unique identifier
+- **Task Name**: Descriptive name
+- **Phase**: Discovery, Procurement, Testing, Deployment, Training
+- **Site**: Site 1, Site 2, etc.
+- **Status**: Yet to Start, In Progress, Completed
+- **Owner**: Person responsible
+- **Planned/Actual Dates**: Start and finish dates
+- **Complexity**: Simple, Medium, Complex
+- **Effort Hours**: Calculated based on complexity
+- **Dependencies**: Comma-separated Task IDs
+
+### **Multi-Project Management:**
 - **TASK**: Task names (read-only, preserved from template)
-- **OWNER**: Person responsible for the task (editable)
+- **OWNER**: Person responsible (editable)
 - **COMMENT**: Task comments and notes (editable)
 - **REF LINK**: Reference documents and links (editable)
 
-## 📁 Project Management
+## 🔧 Core Functions
 
-### **Creating Projects:**
-1. Enter a project name in the sidebar
-2. Click "Create" button
-3. New project is created from your Excel template
-4. All template data is preserved exactly as in the Excel
+### **Authentication & Security:**
+- `login_page()`: User authentication
+- Session state management
 
-### **Editing Projects:**
-- **Inline Editing**: Click any cell in OWNER, COMMENT, or REF LINK columns
-- **Real-time Updates**: Changes are detected automatically
-- **Data Persistence**: Save changes to persist between sessions
+### **Project Plan Dashboard:**
+- `load_demo_data()`: Sample project data
+- `calculate_testing_timeline()`: Complexity-based scheduling
+- `apply_dependency_chaining()`: Dependency management
+- `generate_gantt()`: Interactive charts
+- `update_task()`: Task modifications
 
-### **Managing Projects:**
-- **Project Selector**: Switch between projects using the dropdown
-- **Reset to Template**: Restore any project to the original template
-- **Delete Projects**: Remove projects you no longer need
-- **Project Overview**: See statistics for all projects
+### **Multi-Project Management:**
+- `load_template()`: Excel template loading
+- `create_project()`: New project creation
+- `save_projects()`: Data persistence
+- `delete_project()`: Project removal
+
+## 🎨 User Interface
+
+### **Sidebar Controls:**
+- **App Mode Selector**: Switch between dashboard modes
+- **Filters**: Site, Phase, Status (Project Plan mode)
+- **Project Management**: Create, select, delete projects
+- **Logout**: Secure session termination
+
+### **Main Dashboard:**
+- **Mode-specific content** based on selection
+- **Real-time updates** and data validation
+- **Professional styling** with emojis and modern layout
 
 ## 💾 Data Persistence
 
-- **Automatic Loading**: Projects are loaded from `projects_data.json` on startup
-- **Automatic Saving**: Changes are saved when you click "Save Changes"
-- **No File Uploads**: Everything is handled in-app
-- **Template Preservation**: Original Excel data is never modified
+- **Project Plan**: Session-based with reset capabilities
+- **Multi-Project**: JSON-based persistent storage
+- **Template Preservation**: Original Excel data never modified
+- **Automatic Saving**: Changes saved when requested
 
-## 🔧 Technical Details
+## 🔄 Workflow Examples
 
-### **Files:**
-- **app.py**: Main Streamlit application
-- **Project-Delivery-Plan test.xlsx**: Your Excel template
-- **projects_data.json**: Persistent project data storage
-- **requirements.txt**: Python dependencies
+### **Project Planning Workflow:**
+1. Login with credentials
+2. Select "Project Plan Dashboard" mode
+3. Configure Testing & Model Training complexity
+4. Edit task dependencies and dates
+5. View automatic timeline updates in Gantt chart
+6. Monitor KPIs and project progress
 
-### **Core Functions:**
-- `login_page()`: Handles user authentication
-- `load_template()`: Loads Excel template data
-- `load_projects()`: Loads saved projects from JSON
-- `save_projects()`: Saves projects to JSON
-- `create_project()`: Creates new projects from template
-- `delete_project()`: Removes projects
-
-## 🎯 Use Cases
-
-- **Project Managers**: Track multiple projects simultaneously
-- **Teams**: Share project data without file sharing
-- **Templates**: Use your Excel as a base for new projects
-- **Collaboration**: Multiple users can access different projects
-- **Data Management**: Centralized project data storage
+### **Multi-Project Workflow:**
+1. Login with credentials
+2. Select "Multi-Project Management" mode
+3. Create new project from Excel template
+4. Edit project data inline
+5. Save changes for persistence
+6. Switch between multiple projects
 
 ## 🚨 Security Features
 
 - **User Authentication**: Required before accessing any data
 - **Session Management**: Secure session state handling
 - **Data Isolation**: Users can only access authorized projects
-- **No Credential Storage**: Passwords are not stored in plain text
-
-## 🔄 Workflow
-
-1. **Login** with your credentials
-2. **Create Project** from your Excel template
-3. **Edit Data** inline (OWNER, COMMENT, REF LINK)
-4. **Save Changes** to persist modifications
-5. **Switch Projects** as needed
-6. **Logout** when finished
-
-## 📊 Project Statistics
-
-Each project shows:
-- Total number of tasks
-- Unique owners assigned
-- Tasks with comments
-- Tasks with reference links
-- Overview of all projects
+- **No Credential Storage**: Passwords not stored in plain text
 
 ## 🆘 Troubleshooting
 
-### **Template Loading Issues:**
-- Ensure Excel file is in the same directory as `app.py`
-- Check that the file has the expected column structure
-- Verify Excel file is not corrupted
+### **Common Issues:**
+1. **Template Loading**: Ensure Excel file is in the same directory
+2. **Authentication**: Use exact demo credentials
+3. **Data Saving**: Check write permissions and disk space
+4. **Dependencies**: Avoid circular dependencies in project planning
 
-### **Authentication Issues:**
-- Use the exact demo credentials shown
-- Check that username and password match exactly
-- Clear browser cache if needed
-
-### **Data Saving Issues:**
-- Ensure you have write permissions in the directory
-- Check that `projects_data.json` is not read-only
-- Verify sufficient disk space
+### **Performance Tips:**
+1. **Large Projects**: Use filters to focus on specific areas
+2. **Complex Dependencies**: Start with simple dependency chains
+3. **Multiple Projects**: Limit the number of active projects
 
 ## 🔮 Future Enhancements
 
-- **User Roles**: Different permission levels for different users
+- **User Roles**: Different permission levels
 - **Project Sharing**: Share projects between users
-- **Data Export**: Export projects back to Excel
-- **Advanced Filtering**: Filter tasks by owner, status, etc.
-- **Timeline Views**: Gantt chart visualization
-- **Audit Logs**: Track who made what changes
+- **Data Export**: Export to Excel, PDF, or other formats
+- **Advanced Analytics**: Resource allocation, critical path analysis
+- **Team Collaboration**: Multi-user editing with conflict resolution
+- **API Integration**: Connect with external project management systems
+
+## 📄 Technical Details
+
+- **Framework**: Streamlit
+- **Data Management**: Pandas DataFrames with session state and JSON persistence
+- **Dependencies**: NetworkX for graph operations, Plotly for visualization
+- **Architecture**: Modular functions with clear separation of concerns
+- **File Support**: Excel template loading, JSON data persistence
 
 ## 📄 License
 
@@ -155,4 +203,6 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Happy Project Managing! 🚀** 
+**The Ultimate Project Management Solution! 🚀**
+
+*Get the best of both worlds: advanced project planning AND multi-project management in one powerful app.* 
