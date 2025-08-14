@@ -1,16 +1,16 @@
-# 🚀 Project Delivery Plan Dashboard
+# 🚀 Multi-Project Management Dashboard
 
-A **self-contained Streamlit web app** that displays and manages a project delivery plan entirely inside the app itself. No Excel upload/download needed - all data is stored in-memory with automatic dependency chaining and complexity-driven scheduling.
+A **Streamlit web app** that provides secure, multi-project management capabilities with Excel template loading, user authentication, and persistent data storage.
 
 ## ✨ Features
 
-- **📊 In-Memory Data Management**: All project data stored in Python DataFrames
-- **🧪 Complexity-Driven Scheduling**: Automatic effort calculation for Testing & Model Training tasks
-- **🔗 Automatic Dependency Chaining**: Tasks automatically shift when dependencies change
-- **📈 Interactive Gantt Charts**: Real-time visualization with Plotly
-- **✏️ Editable Task Table**: Modify any field with immediate updates
-- **🎛️ Smart Filtering**: Filter by site, phase, and status
-- **📱 Responsive Dashboard**: Professional UI with real-time KPIs
+- **🔐 User Authentication**: Secure login with username/password
+- **📋 Excel Template Loading**: Automatically loads your project template
+- **📁 Multi-Project Management**: Create, edit, and manage multiple projects
+- **💾 Persistent Storage**: Data saved automatically between sessions
+- **✏️ Inline Editing**: Edit project data directly in the app
+- **🔄 Template Reset**: Reset any project back to the original template
+- **📊 Project Statistics**: Overview of all projects and tasks
 
 ## 🛠️ Installation
 
@@ -27,107 +27,132 @@ A **self-contained Streamlit web app** that displays and manages a project deliv
    streamlit run app.py
    ```
 
-2. **Default behavior**: The app loads with pre-filled demo data for multiple sites and phases
-3. **Edit tasks**: Modify any field in the table for real-time updates
-4. **Configure complexity**: Set complexity levels for Testing & Model Training tasks
-5. **View timeline**: See the Gantt chart update automatically
-6. **Reset data**: Use "Reset to Demo Data" button anytime
+2. **Login**: Use one of the demo accounts shown on the login page
+3. **Create Projects**: Use the sidebar to create new projects from your template
+4. **Edit Data**: Modify OWNER, COMMENT, and REF LINK fields inline
+5. **Save Changes**: Click "Save Changes" to persist your modifications
+6. **Switch Projects**: Use the dropdown to switch between different projects
+
+## 🔐 Demo Accounts
+
+The app comes with pre-configured demo accounts:
+- **Username**: `admin` | **Password**: `admin123`
+- **Username**: `pm` | **Password**: `pm456`
+- **Username**: `user` | **Password**: `user789`
 
 ## 📊 Data Structure
 
-The app includes sample data with these columns:
-- **Task ID**: Unique identifier for each task
-- **Task Name**: Descriptive name of the task
-- **Phase**: Discovery, Procurement, Testing & Model Training, Deployment, Training
-- **Site**: Site 1, Site 2, etc.
-- **Status**: Yet to Start, In Progress, Completed
-- **Owner**: Person responsible for the task
-- **Planned Start/Finish**: Scheduled dates
-- **Actual Start/Finish**: Real completion dates
-- **Complexity**: Simple, Medium, Complex (for testing tasks)
-- **Effort Hours**: Calculated based on complexity
-- **Dependencies**: Comma-separated Task IDs
+The app automatically extracts these columns from your Excel file:
+- **TASK**: Task names (read-only, preserved from template)
+- **OWNER**: Person responsible for the task (editable)
+- **COMMENT**: Task comments and notes (editable)
+- **REF LINK**: Reference documents and links (editable)
 
-## 🧪 Testing & Model Training Features
+## 📁 Project Management
 
-**Automatic Complexity Mapping:**
-- **Simple**: 16 hours
-- **Medium**: 40 hours  
-- **Complex**: 80 hours
+### **Creating Projects:**
+1. Enter a project name in the sidebar
+2. Click "Create" button
+3. New project is created from your Excel template
+4. All template data is preserved exactly as in the Excel
 
-**Timeline Calculation:**
-- Duration (days) = ⌈effort_hours ÷ 8⌉
-- Planned Start = day after all dependencies complete
-- Planned Finish = Planned Start + Duration
+### **Editing Projects:**
+- **Inline Editing**: Click any cell in OWNER, COMMENT, or REF LINK columns
+- **Real-time Updates**: Changes are detected automatically
+- **Data Persistence**: Save changes to persist between sessions
 
-## 🔗 Dependency Chaining
+### **Managing Projects:**
+- **Project Selector**: Switch between projects using the dropdown
+- **Reset to Template**: Restore any project to the original template
+- **Delete Projects**: Remove projects you no longer need
+- **Project Overview**: See statistics for all projects
 
-- **Automatic Updates**: When a predecessor's date changes, all dependent tasks shift automatically
-- **Topological Sorting**: Prevents circular dependencies
-- **Ripple Effect**: Delays propagate through the entire task tree
-- **Real-time Validation**: Changes reflect immediately in the Gantt chart
+## 💾 Data Persistence
 
-## 🎨 User Interface
+- **Automatic Loading**: Projects are loaded from `projects_data.json` on startup
+- **Automatic Saving**: Changes are saved when you click "Save Changes"
+- **No File Uploads**: Everything is handled in-app
+- **Template Preservation**: Original Excel data is never modified
 
-### **Sidebar Controls:**
-- Reset to Demo Data button
-- Site, Phase, and Status filters
+## 🔧 Technical Details
 
-### **Main Dashboard:**
-1. **Project KPIs**: Total tasks, completion rate, delayed tasks, effort hours
-2. **Testing Configuration**: Complexity settings with automatic recalculation
-3. **Editable Task Table**: Modify any field inline
-4. **Gantt Chart**: Color-coded by status with automatic updates
+### **Files:**
+- **app.py**: Main Streamlit application
+- **Project-Delivery-Plan test.xlsx**: Your Excel template
+- **projects_data.json**: Persistent project data storage
+- **requirements.txt**: Python dependencies
 
-## 🔧 Core Functions
+### **Core Functions:**
+- `login_page()`: Handles user authentication
+- `load_template()`: Loads Excel template data
+- `load_projects()`: Loads saved projects from JSON
+- `save_projects()`: Saves projects to JSON
+- `create_project()`: Creates new projects from template
+- `delete_project()`: Removes projects
 
-- `load_demo_data()` → Returns initial project plan DataFrame
-- `calculate_testing_timeline()` → Applies complexity rules and calculates timelines
-- `apply_dependency_chaining()` → Recalculates dependent tasks using topological sorting
-- `apply_filters()` → Filters data for display
-- `generate_gantt()` → Creates interactive Plotly Gantt chart
-- `update_task()` → Updates individual task fields and triggers dependency recalculation
+## 🎯 Use Cases
 
-## 🎯 Behavior Rules
+- **Project Managers**: Track multiple projects simultaneously
+- **Teams**: Share project data without file sharing
+- **Templates**: Use your Excel as a base for new projects
+- **Collaboration**: Multiple users can access different projects
+- **Data Management**: Centralized project data storage
 
-- **Real-time Updates**: Table changes immediately reflect in the Gantt chart
-- **Automatic Chaining**: Date changes trigger dependency recalculation
-- **Validation**: Date formats are validated automatically
-- **Graceful Handling**: Missing dependencies are ignored safely
-- **Session Persistence**: All changes persist during the session
+## 🚨 Security Features
 
-## 📁 Sample Data
+- **User Authentication**: Required before accessing any data
+- **Session Management**: Secure session state handling
+- **Data Isolation**: Users can only access authorized projects
+- **No Credential Storage**: Passwords are not stored in plain text
 
-The app comes pre-loaded with realistic project data including:
-- **Discovery Phase**: Site assessment, architecture design, stakeholder approval
-- **Procurement Phase**: Hardware and software acquisition
-- **Testing & Model Training**: Data model training, validation, performance testing
-- **Deployment Phase**: Environment setup, system integration
-- **Training Phase**: End user training, go-live support
+## 🔄 Workflow
 
-## 🚨 Error Handling
+1. **Login** with your credentials
+2. **Create Project** from your Excel template
+3. **Edit Data** inline (OWNER, COMMENT, REF LINK)
+4. **Save Changes** to persist modifications
+5. **Switch Projects** as needed
+6. **Logout** when finished
 
-- **Circular Dependencies**: Detected and reported with clear error messages
-- **Missing Data**: Gracefully handled with default values
-- **Date Parsing**: Robust date validation and conversion
-- **Session State**: Maintains data integrity throughout the session
+## 📊 Project Statistics
+
+Each project shows:
+- Total number of tasks
+- Unique owners assigned
+- Tasks with comments
+- Tasks with reference links
+- Overview of all projects
+
+## 🆘 Troubleshooting
+
+### **Template Loading Issues:**
+- Ensure Excel file is in the same directory as `app.py`
+- Check that the file has the expected column structure
+- Verify Excel file is not corrupted
+
+### **Authentication Issues:**
+- Use the exact demo credentials shown
+- Check that username and password match exactly
+- Clear browser cache if needed
+
+### **Data Saving Issues:**
+- Ensure you have write permissions in the directory
+- Check that `projects_data.json` is not read-only
+- Verify sufficient disk space
 
 ## 🔮 Future Enhancements
 
-- **Data Persistence**: Save/load project plans to/from files
-- **Team Collaboration**: Multi-user editing with conflict resolution
-- **Advanced Analytics**: Resource allocation, critical path analysis
-- **Export Options**: PDF reports, Excel export, project management tools
-- **API Integration**: Connect with external project management systems
-
-## 📝 Technical Details
-
-- **Framework**: Streamlit
-- **Data Management**: Pandas DataFrames with session state
-- **Dependencies**: NetworkX for graph operations and topological sorting
-- **Visualization**: Plotly for interactive Gantt charts
-- **Architecture**: Modular functions with clear separation of concerns
+- **User Roles**: Different permission levels for different users
+- **Project Sharing**: Share projects between users
+- **Data Export**: Export projects back to Excel
+- **Advanced Filtering**: Filter tasks by owner, status, etc.
+- **Timeline Views**: Gantt chart visualization
+- **Audit Logs**: Track who made what changes
 
 ## 📄 License
 
-This project is open source and available under the MIT License. 
+This project is open source and available under the MIT License.
+
+---
+
+**Happy Project Managing! 🚀** 
