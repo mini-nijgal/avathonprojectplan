@@ -802,6 +802,20 @@ def main_app():
         summary_df = pd.DataFrame(projects_summary)
         st.dataframe(summary_df, use_container_width=True)
     
+    # Gantt Chart
+    st.markdown("---")
+    st.subheader("📊 Project Timeline - Gantt Chart")
+    
+    # Check if we have the necessary columns for Gantt chart
+    if 'Planned Start' in filtered_unified_data.columns and 'Planned Finish' in filtered_unified_data.columns:
+        gantt_fig = generate_gantt(filtered_unified_data)
+        if gantt_fig:
+            st.plotly_chart(gantt_fig, use_container_width=True)
+        else:
+            st.warning("No valid date data found for Gantt chart generation.")
+    else:
+        st.info("📅 Gantt chart requires 'Planned Start' and 'Planned Finish' columns. Add date information to see the timeline visualization.")
+    
     # Reset button
     st.markdown("---")
     if st.button("🔄 Reset to Original Data", type="primary"):
